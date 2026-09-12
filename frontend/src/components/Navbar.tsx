@@ -116,11 +116,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Operator Profile Avatar */}
-        <div className="operator-avatar" title="Cold-Chain Operator: Dairy Unit 1">
+        {/* Operator / Team Profile Avatar */}
+        <div className="operator-avatar" title="Team APEX • Cold-Chain Monitoring">
           <img
-            src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-            alt="Operator"
+            src="/apex-logo.jpg"
+            alt="APEX Logo"
             className="avatar-img"
           />
         </div>

@@ -1,15 +1,21 @@
 import { io, Socket } from 'socket.io-client';
 import { Reading, SessionInfo, SimulatorStatus } from '@/types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+export function getApiBase(): string {
+  if (typeof window !== 'undefined' && window.location.hostname) {
+    return `http://${window.location.hostname}:4000`;
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+}
 
 let socket: Socket | null = null;
 
 export function getSocket(): Socket {
   if (!socket) {
-    socket = io(API_BASE, {
+    const base = getApiBase();
+    socket = io(base, {
       transports: ['websocket', 'polling'],
-      reconnectionAttempts: 10,
+      reconnectionAttempts: 20,
       reconnectionDelay: 1000,
     });
   }
@@ -18,7 +24,8 @@ export function getSocket(): Socket {
 
 export async function fetchRecentReadings(limit = 100, since?: string): Promise<Reading[]> {
   try {
-    const url = new URL(`${API_BASE}/api/readings`);
+    const base = getApiBase();
+    const url = new URL(`${base}/api/readings`);
     url.searchParams.set('limit', String(limit));
     url.searchParams.set('order', 'asc');
     if (since) url.searchParams.set('since', since);
@@ -35,7 +42,8 @@ export async function fetchRecentReadings(limit = 100, since?: string): Promise<
 
 export async function fetchCurrentSession(): Promise<SessionInfo | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/session/current`);
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/session/current`);
     if (!res.ok) throw new Error('Failed to fetch session');
     return await res.json();
   } catch (err) {
@@ -46,7 +54,8 @@ export async function fetchCurrentSession(): Promise<SessionInfo | null> {
 
 export async function startNewSession(initialHours = 8.0): Promise<SessionInfo | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/session/start`, {
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/session/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ initial_hours: initialHours }),
@@ -62,7 +71,8 @@ export async function startNewSession(initialHours = 8.0): Promise<SessionInfo |
 
 export async function setSimulator(active: boolean, scenario?: string, intervalMs?: number): Promise<SimulatorStatus | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/readings/simulate`, {
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/readings/simulate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ active, scenario, intervalMs }),
@@ -78,7 +88,8 @@ export async function setSimulator(active: boolean, scenario?: string, intervalM
 
 export async function fetchSimulatorStatus(): Promise<SimulatorStatus | null> {
   try {
-    const res = await fetch(`${API_BASE}/api/readings/simulate/status`);
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/readings/simulate/status`);
     if (!res.ok) throw new Error('Failed to fetch simulator status');
     return await res.json();
   } catch (err) {
@@ -89,7 +100,8 @@ export async function fetchSimulatorStatus(): Promise<SimulatorStatus | null> {
 
 export async function clearAllReadings(): Promise<boolean> {
   try {
-    const res = await fetch(`${API_BASE}/api/readings`, {
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/readings`, {
       method: 'DELETE',
     });
     return res.ok;
@@ -100,5 +112,6 @@ export async function clearAllReadings(): Promise<boolean> {
 }
 
 export function getExportUrl(): string {
-  return `${API_BASE}/api/readings/export`;
+  const base = getApiBase();
+  return `${base}/api/readings/export`;
 }

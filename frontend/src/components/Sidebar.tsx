@@ -37,13 +37,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside className="app-sidebar">
-      {/* Brand Geometric Icon at Top */}
+      {/* Brand APEX Logo at Top */}
       <div className="sidebar-logo">
-        <div className="logo-geometric">
-          <div className="logo-circle circle-1" />
-          <div className="logo-circle circle-2" />
-          <div className="logo-circle circle-3" />
-          <div className="logo-circle circle-4" />
+        <div style={{ width: '38px', height: '38px', borderRadius: '50%', overflow: 'hidden', border: '1px solid #E2E8F0', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+          <img src="/apex-logo.jpg" alt="APEX Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         </div>
       </div>
 
