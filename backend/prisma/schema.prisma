@@ -1,0 +1,27 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Reading {
+  id                      Int      @id @default(autoincrement())
+  timestamp               DateTime @default(now())
+  temperature_c           Float
+  ph                      Float
+  temp_status             String   // "safe" | "warning" | "spoiling"
+  ph_status               String   // "safe" | "warning" | "spoiling"
+  status                  String   // "safe" | "warning" | "spoiling"
+  estimated_hours_remaining Float
+}
+
+model Session {
+  id           Int       @id @default(autoincrement())
+  started_at   DateTime  @default(now())
+  ended_at     DateTime?
+  initial_hours Float    @default(8.0)
+  active       Boolean   @default(true)
+}

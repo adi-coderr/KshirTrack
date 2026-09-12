@@ -1,0 +1,15 @@
+{
+  "name": "milk-chilling-monitor",
+  "version": "1.0.0",
+  "description": "Smart Milk Chilling Can Monitoring System (ESP32 + DS18B20 + pH probe)",
+  "scripts": {
+    "dev": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "cd backend && npm run build && cd ../frontend && npm run build",
+    "start": "concurrently -n \"BACKEND,FRONTEND\" -c \"cyan,magenta\" \"cd backend && npm start\" \"cd frontend && npm start\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.4"
+  }
+}
