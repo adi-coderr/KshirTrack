@@ -903,6 +903,33 @@ html, body {
   box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
 }
 
+.reference-callout-pill {
+  background: #283834;
+  color: #FFFFFF;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 14px rgba(40, 56, 52, 0.25);
+  line-height: 1.2;
+}
+
+.callout-value {
+  font-size: 13px;
+  font-weight: 800;
+  color: #FFFFFF;
+  font-family: var(--font-mono);
+}
+
+.callout-label {
+  font-size: 9px;
+  font-weight: 600;
+  color: #A0B4B0;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .chart-custom-legend {
   display: flex;
   align-items: center;

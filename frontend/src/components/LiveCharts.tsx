@@ -36,6 +36,7 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
 
   const displayedReadings = dataWindow > 0 ? readings.slice(-dataWindow) : readings;
 
+  // Format timestamps into clean HH:MM:SS
   const labels = displayedReadings.map((r) => {
     const d = new Date(r.timestamp);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -45,6 +46,16 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
   const phValues = displayedReadings.map((r) => r.ph);
 
   const latestTemp = tempValues.length > 0 ? tempValues[tempValues.length - 1] : 5.4;
+  const latestPH = phValues.length > 0 ? phValues[phValues.length - 1] : 6.64;
+
+  // Calculate peak point indices to highlight dots like in reference image
+  const peakTempIndex = tempValues.length > 0
+    ? tempValues.indexOf(Math.max(...tempValues))
+    : 0;
+
+  const peakPHIndex = phValues.length > 0
+    ? phValues.indexOf(Math.max(...phValues))
+    : 0;
 
   const chartData = {
     labels,
@@ -52,41 +63,67 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
       {
         label: 'Temperature (°C)',
         data: tempValues,
-        borderColor: '#4F46E5', // Royal Cobalt Blue matching screenshot
+        borderColor: '#D49A38', // Golden Ochre / Mustard Amber matching reference image
         backgroundColor: (context: any) => {
           const chart = context.chart;
           const { ctx, chartArea } = chart;
-          if (!chartArea) return 'rgba(79, 70, 229, 0.08)';
+          if (!chartArea) return 'rgba(212, 154, 56, 0.1)';
           const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-          gradient.addColorStop(0, 'rgba(79, 70, 229, 0.22)');
-          gradient.addColorStop(1, 'rgba(79, 70, 229, 0.01)');
+          gradient.addColorStop(0, 'rgba(212, 154, 56, 0.32)');
+          gradient.addColorStop(0.65, 'rgba(212, 154, 56, 0.10)');
+          gradient.addColorStop(1, 'rgba(212, 154, 56, 0.0)');
           return gradient;
         },
         fill: true,
-        tension: 0.4,
-        borderWidth: 2.5,
-        pointRadius: displayedReadings.length <= 1 ? 6 : (displayedReadings.length > 40 ? 1.5 : 4),
-        pointBackgroundColor: '#4F46E5',
+        tension: 0.48, // Smooth wave spline matching reference
+        borderWidth: 2.2,
+        pointRadius: (ctx: any) => {
+          const idx = ctx.dataIndex;
+          const total = tempValues.length;
+          // Highlight peak or latest point with a large golden circle like reference image
+          if (total <= 1 || idx === peakTempIndex || idx === total - 1) return 6.5;
+          return total > 35 ? 0 : 3;
+        },
+        pointBackgroundColor: '#D49A38',
         pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 1.5,
-        pointHoverRadius: 7,
-        pointHoverBackgroundColor: '#4F46E5',
+        pointBorderWidth: 2,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#D49A38',
+        pointHoverBorderColor: '#FFFFFF',
+        pointHoverBorderWidth: 2.5,
         yAxisID: 'yTemp',
       },
       {
         label: 'Acidity (pH)',
         data: phValues,
-        borderColor: '#EC4899', // Coral Pink matching screenshot
-        backgroundColor: 'transparent',
-        fill: false,
-        tension: 0.4,
-        borderWidth: 2,
-        pointRadius: displayedReadings.length <= 1 ? 6 : (displayedReadings.length > 40 ? 1.5 : 4),
-        pointBackgroundColor: '#EC4899',
+        borderColor: '#38524D', // Deep Slate Charcoal Teal matching reference image
+        backgroundColor: (context: any) => {
+          const chart = context.chart;
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return 'rgba(56, 82, 77, 0.08)';
+          const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+          gradient.addColorStop(0, 'rgba(56, 82, 77, 0.26)');
+          gradient.addColorStop(0.65, 'rgba(56, 82, 77, 0.08)');
+          gradient.addColorStop(1, 'rgba(56, 82, 77, 0.0)');
+          return gradient;
+        },
+        fill: true,
+        tension: 0.48, // Smooth wave spline matching reference
+        borderWidth: 2.2,
+        pointRadius: (ctx: any) => {
+          const idx = ctx.dataIndex;
+          const total = phValues.length;
+          // Highlight peak or latest point with a slate circle like reference image
+          if (total <= 1 || idx === peakPHIndex || idx === total - 1) return 6.5;
+          return total > 35 ? 0 : 3;
+        },
+        pointBackgroundColor: '#38524D',
         pointBorderColor: '#FFFFFF',
-        pointBorderWidth: 1.5,
-        pointHoverRadius: 6,
-        pointHoverBackgroundColor: '#EC4899',
+        pointBorderWidth: 2,
+        pointHoverRadius: 8,
+        pointHoverBackgroundColor: '#38524D',
+        pointHoverBorderColor: '#FFFFFF',
+        pointHoverBorderWidth: 2.5,
         yAxisID: 'yPH',
       },
     ],
@@ -97,6 +134,7 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
     maintainAspectRatio: false,
     animation: {
       duration: 350,
+      easing: 'easeInOutQuart',
     },
     interaction: {
       mode: 'index',
@@ -105,12 +143,13 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
     scales: {
       x: {
         grid: {
-          color: '#F1F5F9',
+          display: false, // Clean look matching reference
         },
         ticks: {
-          color: '#94A3B8',
-          font: { family: 'Outfit', size: 10 },
-          maxTicksLimit: 8,
+          color: '#8A9BA8',
+          font: { family: 'Outfit', size: 11, weight: 500 },
+          maxTicksLimit: 7,
+          padding: 8,
         },
         border: { display: false },
       },
@@ -118,15 +157,17 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
         type: 'linear',
         position: 'left',
         min: 0,
-        max: 16,
+        max: 12,
         grid: {
-          color: '#F1F5F9',
+          color: 'rgba(241, 245, 249, 0.9)',
+          lineWidth: 1,
         },
         ticks: {
-          color: '#64748B',
-          font: { family: 'Outfit', size: 10 },
-          callback: (v) => `${v}°C`,
-          stepSize: 4,
+          color: '#8A9BA8',
+          font: { family: 'Outfit', size: 11, weight: 500 },
+          callback: (v) => `${v}`,
+          stepSize: 2,
+          padding: 8,
         },
         border: { display: false },
       },
@@ -137,28 +178,51 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
         max: 7.5,
         grid: { display: false },
         ticks: {
-          color: '#EC4899',
-          font: { family: 'Outfit', size: 10 },
-          callback: (v) => `${Number(v).toFixed(1)}pH`,
+          color: '#38524D',
+          font: { family: 'Outfit', size: 11, weight: 600 },
+          callback: (v) => `${Number(v).toFixed(1)} pH`,
           stepSize: 0.5,
+          padding: 8,
         },
         border: { display: false },
       },
     },
     plugins: {
-      legend: { display: false }, // Custom legend used in header
+      legend: { display: false },
       tooltip: {
-        backgroundColor: '#1E293B',
+        // Speech bubble tooltip style matching reference screenshot
+        enabled: true,
+        backgroundColor: '#283834', // Dark charcoal teal matching reference callout
         titleColor: '#FFFFFF',
-        bodyColor: '#E2E8F0',
-        padding: 10,
-        cornerRadius: 8,
-        usePointStyle: true,
+        bodyColor: '#B2C6C1',
+        cornerRadius: 12,
+        caretSize: 8,
+        caretPadding: 6,
+        padding: { top: 10, bottom: 10, left: 16, right: 16 },
+        displayColors: false,
+        titleAlign: 'center',
+        bodyAlign: 'center',
+        titleFont: {
+          family: 'Outfit',
+          size: 15,
+          weight: 'bold',
+        },
+        bodyFont: {
+          family: 'Outfit',
+          size: 11,
+          weight: 500,
+        },
         callbacks: {
-          label: (context) => {
-            const label = context.dataset.label || '';
-            const val = context.parsed.y != null ? context.parsed.y.toFixed(2) : '--';
-            return ` ${label}: ${val}`;
+          title: (items) => {
+            if (!items.length) return '';
+            const first = items[0];
+            const val = first.parsed.y != null ? first.parsed.y : 0;
+            return first.datasetIndex === 0
+              ? `${val.toFixed(1)}°C`
+              : `${val.toFixed(2)} pH`;
+          },
+          label: (item) => {
+            return item.datasetIndex === 0 ? 'Temperature' : 'Acidity Level';
           },
         },
       },
@@ -170,20 +234,22 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
       <div className="panel-header">
         <div className="chart-title-group">
           <span className="card-section-title">Cold-Chain Trends</span>
-          <div className="floating-metric-badge">
-            <span>{latestTemp.toFixed(1)}°C Live</span>
+          {/* Callout badge styled like the dark pill in the reference */}
+          <div className="reference-callout-pill">
+            <span className="callout-value">{latestTemp.toFixed(1)}°C</span>
+            <span className="callout-label">Live Temp</span>
           </div>
         </div>
 
-        {/* Legend matching screenshot dots */}
+        {/* Custom Legend matching reference image colors */}
         <div className="chart-custom-legend">
           <div className="legend-item">
-            <span className="legend-dot dot-blue" />
-            <span className="legend-label">Temperature (°C)</span>
+            <span className="legend-dot" style={{ backgroundColor: '#D49A38' }} />
+            <span className="legend-label" style={{ fontWeight: 600 }}>Temperature (°C)</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot dot-pink" />
-            <span className="legend-label">Acidity (pH)</span>
+            <span className="legend-dot" style={{ backgroundColor: '#38524D' }} />
+            <span className="legend-label" style={{ fontWeight: 600 }}>Acidity (pH)</span>
           </div>
 
           <div className="timeframe-selector">
@@ -212,7 +278,7 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
         </div>
       </div>
 
-      <div className="chart-canvas-wrapper">
+      <div className="chart-canvas-wrapper" style={{ height: '260px' }}>
         {displayedReadings.length === 0 ? (
           <div className="chart-empty">Waiting for live sensor data stream...</div>
         ) : (
