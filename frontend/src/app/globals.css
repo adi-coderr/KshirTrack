@@ -58,6 +58,10 @@
   padding: 0;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 html, body {
   min-height: 100vh;
   background-color: var(--bg-desktop);
@@ -1427,3 +1431,151 @@ html, body {
   50% { transform: scale(1.08); }
   100% { transform: scale(0.95); }
 }
+
+/* ------------------------------------------------------------------
+   Scroll Loading Transitions & Direction-Aware Reveals
+------------------------------------------------------------------ */
+.scroll-reveal-container {
+  will-change: transform, opacity;
+  transition-property: transform, opacity;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Hidden States when scrolled out of view */
+.scroll-reveal-container.reveal-hidden.from-bottom {
+  opacity: 0;
+  transform: translate3d(0, 38px, 0);
+  pointer-events: none;
+}
+
+.scroll-reveal-container.reveal-hidden.from-top {
+  opacity: 0;
+  transform: translate3d(0, -32px, 0);
+  pointer-events: none;
+}
+
+.scroll-reveal-container.reveal-hidden.from-left {
+  opacity: 0;
+  transform: translate3d(-38px, 0, 0);
+  pointer-events: none;
+}
+
+.scroll-reveal-container.reveal-hidden.from-right {
+  opacity: 0;
+  transform: translate3d(38px, 0, 0);
+  pointer-events: none;
+}
+
+/* Visible State when scrolled into view */
+.scroll-reveal-container.reveal-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------------
+   Top Scroll Progress Indicator Bar
+------------------------------------------------------------------ */
+.scroll-progress-bar-track {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3.5px;
+  background: transparent;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.scroll-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-blue) 0%, var(--accent-cyan) 60%, var(--accent-pink) 100%);
+  box-shadow: 0 0 12px rgba(79, 70, 229, 0.7), 0 0 6px rgba(6, 182, 212, 0.8);
+  border-radius: 0 2px 2px 0;
+  transition: width 0.1s ease-out;
+  will-change: width;
+}
+
+/* ------------------------------------------------------------------
+   Floating Back To Top Pill
+------------------------------------------------------------------ */
+.scroll-to-top-btn {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  border-radius: var(--radius-full);
+  color: var(--text-dark);
+  font-family: var(--font-main);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 24px -4px rgba(50, 65, 100, 0.16), 0 2px 8px rgba(0, 0, 0, 0.04);
+  opacity: 0;
+  transform: translateY(18px) scale(0.9);
+  pointer-events: none;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 850;
+}
+
+.scroll-to-top-btn.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scroll-to-top-btn:hover {
+  background: #FFFFFF;
+  color: var(--primary-blue);
+  border-color: var(--primary-blue-light);
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: 0 12px 30px -4px rgba(79, 70, 229, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.scroll-to-top-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.scroll-to-top-text {
+  letter-spacing: -0.01em;
+}
+
+@media (max-width: 640px) {
+  .scroll-to-top-btn {
+    bottom: 20px;
+    right: 18px;
+    padding: 10px 12px;
+  }
+  .scroll-to-top-text {
+    display: none;
+  }
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .scroll-reveal-container,
+  .scroll-reveal-container.reveal-hidden,
+  .scroll-reveal-container.reveal-visible {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+  .scroll-progress-bar-fill {
+    transition: none !important;
+  }
+  .scroll-to-top-btn {
+    transition: opacity 0.1s linear !important;
+  }
+}
+

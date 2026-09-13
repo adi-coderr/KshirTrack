@@ -11,6 +11,8 @@ import { RecentReadingsTable } from '@/components/RecentReadingsTable';
 import { SimulatorControls } from '@/components/SimulatorControls';
 import { AlertBanner } from '@/components/AlertBanner';
 import { CanSchematic } from '@/components/CanSchematic';
+import { ScrollReveal } from '@/components/ScrollReveal';
+import { ScrollProgressBar } from '@/components/ScrollProgressBar';
 import {
   getSocket,
   fetchRecentReadings,
@@ -140,6 +142,9 @@ export default function DashboardPage() {
 
   return (
     <div className="app-viewport-wrapper">
+      {/* Dynamic Scroll Progress Bar & Floating Quick-Scroll Button */}
+      <ScrollProgressBar />
+
       {/* 1. Left Vertical Sidebar Dock */}
       <Sidebar
         onResetSession={handleResetSession}
@@ -171,31 +176,43 @@ export default function DashboardPage() {
         <AlertBanner currentReading={currentReading} />
 
         {/* 3. Top 4-Column KPI Strip */}
-        <StatusTiles currentReading={currentReading} session={session} />
+        <ScrollReveal direction="bidirectional" delay={40}>
+          <StatusTiles currentReading={currentReading} session={session} />
+        </ScrollReveal>
 
         {/* 4. Middle Content Split: Left (68%) & Right (32%) */}
         <div className="dashboard-content-split">
           {/* Left Column */}
           <div className="dashboard-main-col">
-            {/* Status Overview Card (Matches "Upcoming Interview" in screenshot) */}
-            <StatusOverviewCard
-              currentReading={currentReading}
-              onOpenSchematic={scrollToSchematic}
-            />
+            {/* Status Overview Card */}
+            <ScrollReveal direction="bidirectional" delay={60}>
+              <StatusOverviewCard
+                currentReading={currentReading}
+                onOpenSchematic={scrollToSchematic}
+              />
+            </ScrollReveal>
 
-            {/* Cold-Chain Trends Line Chart (Matches "Vacancy Trends" in screenshot) */}
-            <LiveCharts readings={readings} />
+            {/* Cold-Chain Trends Line Chart */}
+            <ScrollReveal direction="bidirectional" delay={80}>
+              <LiveCharts readings={readings} />
+            </ScrollReveal>
 
-            {/* Recent Telemetry Table (Matches "Employees" in screenshot) */}
-            <RecentReadingsTable readings={readings} />
+            {/* Recent Telemetry Table */}
+            <ScrollReveal direction="bidirectional" delay={100}>
+              <RecentReadingsTable readings={readings} />
+            </ScrollReveal>
 
             {/* Physical Can Cross-Section Blueprint */}
-            <CanSchematic currentReading={currentReading} />
+            <ScrollReveal direction="bidirectional" delay={120}>
+              <CanSchematic currentReading={currentReading} />
+            </ScrollReveal>
           </div>
 
-          {/* Right Column (Matches "Countries Insight" & "Current Vacancies") */}
+          {/* Right Column (Insights & Hardware Status) */}
           <div className="dashboard-side-col">
-            <RightColumnCards currentReading={currentReading} />
+            <ScrollReveal direction="bidirectional" delay={90}>
+              <RightColumnCards currentReading={currentReading} />
+            </ScrollReveal>
           </div>
         </div>
       </main>
