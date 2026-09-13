@@ -18,8 +18,8 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
   children,
   direction = 'bidirectional',
   delay = 0,
-  duration = 600,
-  threshold = 0.08,
+  duration = 750,
+  threshold = 0.05,
   className = '',
   as: Component = 'div',
   style,
@@ -75,7 +75,7 @@ export const ScrollReveal: React.FC<ScrollRevealProps> = ({
       },
       {
         threshold: [0, threshold],
-        rootMargin: '0px 0px -30px 0px',
+        rootMargin: '0px 0px -60px 0px',
       }
     );
 

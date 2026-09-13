@@ -1436,40 +1436,45 @@ html, body {
    Scroll Loading Transitions & Direction-Aware Reveals
 ------------------------------------------------------------------ */
 .scroll-reveal-container {
-  will-change: transform, opacity;
-  transition-property: transform, opacity;
-  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity, filter;
+  transition-property: transform, opacity, filter;
+  transition-timing-function: cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* Hidden States when scrolled out of view */
+/* Hidden States when scrolled out of view (high-impact displacement + scale + camera blur) */
 .scroll-reveal-container.reveal-hidden.from-bottom {
   opacity: 0;
-  transform: translate3d(0, 38px, 0);
+  transform: translate3d(0, 68px, 0) scale(0.95);
+  filter: blur(8px);
   pointer-events: none;
 }
 
 .scroll-reveal-container.reveal-hidden.from-top {
   opacity: 0;
-  transform: translate3d(0, -32px, 0);
+  transform: translate3d(0, -60px, 0) scale(0.95);
+  filter: blur(8px);
   pointer-events: none;
 }
 
 .scroll-reveal-container.reveal-hidden.from-left {
   opacity: 0;
-  transform: translate3d(-38px, 0, 0);
+  transform: translate3d(-68px, 0, 0) scale(0.95);
+  filter: blur(8px);
   pointer-events: none;
 }
 
 .scroll-reveal-container.reveal-hidden.from-right {
   opacity: 0;
-  transform: translate3d(38px, 0, 0);
+  transform: translate3d(68px, 0, 0) scale(0.95);
+  filter: blur(8px);
   pointer-events: none;
 }
 
-/* Visible State when scrolled into view */
+/* Visible State when scrolled into view (full scale, crystal sharp, smooth settling) */
 .scroll-reveal-container.reveal-visible {
   opacity: 1;
-  transform: translate3d(0, 0, 0);
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0px);
   pointer-events: auto;
 }
 
