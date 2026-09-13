@@ -192,19 +192,19 @@ export default function DashboardPage() {
               />
             </ScrollReveal>
 
-            {/* Cold-Chain Trends Line Chart */}
+            {/* Physical Can Hardware & Cross-Section Blueprint */}
             <ScrollReveal direction="bidirectional" delay={80}>
+              <CanSchematic currentReading={currentReading} />
+            </ScrollReveal>
+
+            {/* Cold-Chain Trends Line Chart */}
+            <ScrollReveal direction="bidirectional" delay={100}>
               <LiveCharts readings={readings} />
             </ScrollReveal>
 
             {/* Recent Telemetry Table */}
-            <ScrollReveal direction="bidirectional" delay={100}>
-              <RecentReadingsTable readings={readings} />
-            </ScrollReveal>
-
-            {/* Physical Can Cross-Section Blueprint */}
             <ScrollReveal direction="bidirectional" delay={120}>
-              <CanSchematic currentReading={currentReading} />
+              <RecentReadingsTable readings={readings} />
             </ScrollReveal>
           </div>
 
