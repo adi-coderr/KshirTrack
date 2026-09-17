@@ -3,12 +3,14 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Bell, Search, Play, Square, RefreshCw, Radio, User, Sliders } from 'lucide-react';
+import { Bell, Search, Play, Square, RefreshCw, Radio, User, Sliders, RotateCcw } from 'lucide-react';
 import { Reading, SimulatorStatus } from '@/types';
 
 interface NavbarProps {
   isConnected: boolean;
   onResetSession: () => void;
+  onChangeMilk?: () => void;
+  onResetData?: () => void;
   simulatorStatus: SimulatorStatus | null;
   onToggleSimulator: () => void;
   currentReading?: Reading | null;
@@ -18,6 +20,8 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   isConnected,
   onResetSession,
+  onChangeMilk,
+  onResetData,
   simulatorStatus,
   onToggleSimulator,
   currentReading,
@@ -39,7 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Left: Greeting & Status */}
       <div className="header-greeting-wrap">
         <h1 className="header-title">
-          Smart Chilling Can <span className="text-highlight">#CAN-40L</span>
+          Smart Chilling Can
         </h1>
         <p className="header-subtitle">
           SIH Live Telemetry &bull; Local Cold-Chain Gateway
@@ -78,6 +82,30 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Right: Actions, Node Status & Avatar */}
       <div className="header-right-actions">
+        {/* Change Milk Batch Button */}
+        <button
+          type="button"
+          onClick={onChangeMilk}
+          className="action-pill-btn change-milk-header-btn"
+          style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', color: '#0F172A' }}
+          title="Change Milk Batch: Resets storage session & waits for 4.0–8.0°C"
+        >
+          <RotateCcw size={13} className="text-blue" />
+          <span>Change Milk</span>
+        </button>
+
+        {/* Reset All to 0 (No Hardware Standby) */}
+        <button
+          type="button"
+          onClick={onResetData}
+          className="action-pill-btn"
+          style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}
+          title="Set everything to 0 (Standby mode when no hardware is connected)"
+        >
+          <RotateCcw size={13} />
+          <span>Reset to 0</span>
+        </button>
+
         {/* Simulator Toggle Button */}
         <button
           type="button"

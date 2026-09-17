@@ -18,6 +18,7 @@ import {
   fetchRecentReadings,
   fetchCurrentSession,
   startNewSession,
+  changeMilkSession,
   setSimulator,
   fetchSimulatorStatus,
   clearAllReadings,
@@ -49,6 +50,8 @@ export default function DashboardPage() {
         setReadings(pastReadings);
         if (pastReadings.length > 0) {
           setCurrentReading(pastReadings[pastReadings.length - 1]);
+        } else {
+          setCurrentReading(null);
         }
         setSession(currentSess);
         setSimulatorStatus(simStatus);
@@ -77,16 +80,19 @@ export default function DashboardPage() {
     };
 
     const onSessionUpdate = (newSession: SessionInfo) => setSession(newSession);
+    const onMilkChanged = (data: { session: SessionInfo; message: string }) => setSession(data.session);
     const onSimulatorStatus = (status: SimulatorStatus) => setSimulatorStatus(status);
     const onReadingsCleared = () => {
       setReadings([]);
       setCurrentReading(null);
+      setSession(null);
     };
 
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('new-reading', onNewReading);
     socket.on('session-update', onSessionUpdate);
+    socket.on('milk-changed', onMilkChanged);
     socket.on('simulator-status', onSimulatorStatus);
     socket.on('readings-cleared', onReadingsCleared);
 
@@ -98,6 +104,7 @@ export default function DashboardPage() {
       socket.off('disconnect', onDisconnect);
       socket.off('new-reading', onNewReading);
       socket.off('session-update', onSessionUpdate);
+      socket.off('milk-changed', onMilkChanged);
       socket.off('simulator-status', onSimulatorStatus);
       socket.off('readings-cleared', onReadingsCleared);
     };
@@ -106,6 +113,13 @@ export default function DashboardPage() {
   const handleResetSession = useCallback(async () => {
     if (confirm('Start a new storage session? This resets the elapsed timer.')) {
       const newSess = await startNewSession(8.0);
+      if (newSess) setSession(newSess);
+    }
+  }, []);
+
+  const handleChangeMilk = useCallback(async () => {
+    if (confirm('Change milk batch? This resets the storage session to pre-cooling. The cold storage timer will begin when the milk hits 4.0°C–8.0°C.')) {
+      const newSess = await changeMilkSession(8.0);
       if (newSess) setSession(newSess);
     }
   }, []);
@@ -127,11 +141,17 @@ export default function DashboardPage() {
   }, [simulatorStatus]);
 
   const handleResetData = useCallback(async () => {
-    if (confirm('Clear all past readings from SQLite?')) {
-      await clearAllReadings();
-      setReadings([]);
-      setCurrentReading(null);
-    }
+    await clearAllReadings();
+    setReadings([]);
+    setCurrentReading(null);
+    setSession(null);
+    setSimulatorStatus({
+      active: false,
+      scenario: 'normal_cooling',
+      intervalMs: 3000,
+      currentTemp: 0.0,
+      currentPH: 0.0,
+    });
   }, []);
 
   const scrollToSchematic = () => {
@@ -148,6 +168,7 @@ export default function DashboardPage() {
       {/* 1. Left Vertical Sidebar Dock */}
       <Sidebar
         onResetSession={handleResetSession}
+        onChangeMilk={handleChangeMilk}
         onOpenSimulator={handleToggleSimulator}
         isSimulating={simulatorStatus?.active}
       />
@@ -158,6 +179,8 @@ export default function DashboardPage() {
         <Navbar
           isConnected={isConnected}
           onResetSession={handleResetSession}
+          onChangeMilk={handleChangeMilk}
+          onResetData={handleResetData}
           simulatorStatus={simulatorStatus}
           onToggleSimulator={handleToggleSimulator}
           currentReading={currentReading}
@@ -172,8 +195,8 @@ export default function DashboardPage() {
           onResetData={handleResetData}
         />
 
-        {/* Alert Banner (visible on warning/spoilage) */}
-        <AlertBanner currentReading={currentReading} />
+        {/* Alert Banner (visible on pre-cooling, warning, or spoilage) */}
+        <AlertBanner currentReading={currentReading} session={session} />
 
         {/* 3. Top 4-Column KPI Strip */}
         <ScrollReveal direction="bidirectional" delay={40}>

@@ -2,16 +2,44 @@
 
 import React from 'react';
 import { AlertTriangle, AlertOctagon, ShieldAlert } from 'lucide-react';
-import { Reading } from '@/types';
+import { Reading, SessionInfo } from '@/types';
 
 interface AlertBannerProps {
   currentReading: Reading | null;
+  session?: SessionInfo | null;
 }
 
-export const AlertBanner: React.FC<AlertBannerProps> = ({ currentReading }) => {
-  if (!currentReading) return null;
+export const AlertBanner: React.FC<AlertBannerProps> = ({ currentReading, session }) => {
+  if (!currentReading || (currentReading.temperature_c === 0 && currentReading.ph === 0)) return null;
 
   const { status, temp_status, ph_status, temperature_c, ph } = currentReading;
+  const isPreCooling = session?.state === 'cooling' || !session?.chilling_reached_at;
+
+  // If in pre-cooling phase with fresh milk cooling down
+  if (isPreCooling && temperature_c > 8.0 && ph >= 6.4) {
+    return (
+      <div className="light-alert-card alert-info" style={{ background: '#F0F9FF', borderColor: '#BAE6FD' }}>
+        <div className="alert-left-group">
+          <div className="alert-icon-wrap icon-blue" style={{ background: '#E0F2FE', color: '#0284C7' }}>
+            <span style={{ fontSize: '18px' }}>🥛</span>
+          </div>
+          <div>
+            <div className="alert-card-title" style={{ color: '#0369A1' }}>
+              Fresh Milk Pre-Chilling in Progress ({temperature_c.toFixed(1)}°C)
+            </div>
+            <div className="alert-card-desc" style={{ color: '#0284C7' }}>
+              Fresh batch loaded. Storage countdown timer will lock in automatically when milk reaches 4.0°C–8.0°C.
+            </div>
+          </div>
+        </div>
+        <div className="alert-right-badge">
+          <span className="pill-badge" style={{ background: '#0284C7', color: '#FFF' }}>
+            TARGETING 4.0–8.0°C
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (status === 'safe') {
     return null;

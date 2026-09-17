@@ -12,6 +12,9 @@ export interface Reading {
   session?: {
     id: number;
     started_at: string;
+    chilling_reached_at?: string | null;
+    state?: 'cooling' | 'chilled' | 'ended';
+    batch_name?: string;
     initial_hours: number;
   };
 }
@@ -19,14 +22,17 @@ export interface Reading {
 export interface SessionInfo {
   id: number;
   started_at: string;
+  chilling_reached_at: string | null;
   ended_at: string | null;
   initial_hours: number;
+  batch_name?: string;
+  state: 'cooling' | 'chilled' | 'ended';
   active: boolean;
 }
 
 export interface SimulatorStatus {
   active: boolean;
-  scenario: 'normal_cooling' | 'temperature_warning' | 'temperature_spoilage' | 'acidification_spoilage' | 'rapid_demo';
+  scenario: 'fresh_milk_cooling' | 'normal_cooling' | 'temperature_warning' | 'temperature_spoilage' | 'acidification_spoilage' | 'rapid_demo';
   intervalMs: number;
   currentTemp: number;
   currentPH: number;

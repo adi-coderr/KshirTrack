@@ -11,12 +11,16 @@ interface StatusTilesProps {
 
 export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, session }) => {
   const [elapsedString, setElapsedString] = useState('00:00:00');
+  const isChilled = Boolean(session?.chilling_reached_at);
 
   useEffect(() => {
-    if (!session?.started_at) return;
+    if (!session?.chilling_reached_at) {
+      setElapsedString('00:00:00');
+      return;
+    }
 
     const updateTimer = () => {
-      const start = new Date(session.started_at).getTime();
+      const start = new Date(session.chilling_reached_at!).getTime();
       const now = new Date().getTime();
       const diffMs = Math.max(0, now - start);
 
@@ -32,14 +36,15 @@ export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, sessio
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [session?.started_at]);
+  }, [session?.chilling_reached_at]);
 
-  const tempVal = currentReading ? currentReading.temperature_c : null;
-  const phVal = currentReading ? currentReading.ph : null;
-  const tempStatus = currentReading ? currentReading.temp_status : 'waiting';
-  const phStatus = currentReading ? currentReading.ph_status : 'waiting';
-  const overallStatus = currentReading ? currentReading.status : 'waiting';
-  const hoursRemaining = currentReading ? currentReading.estimated_hours_remaining : 8.0;
+  const hasReading = Boolean(currentReading);
+  const tempVal = hasReading ? currentReading!.temperature_c : 0.0;
+  const phVal = hasReading ? currentReading!.ph : 0.0;
+  const tempStatus = hasReading ? currentReading!.temp_status : 'waiting';
+  const phStatus = hasReading ? currentReading!.ph_status : 'waiting';
+  const overallStatus = hasReading ? currentReading!.status : 'waiting';
+  const hoursRemaining = hasReading ? currentReading!.estimated_hours_remaining : 0.0;
 
   const getTagClass = (status: string) => {
     if (status === 'safe') return 'tag-green';
@@ -59,9 +64,15 @@ export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, sessio
           <span className="kpi-label">Milk Temperature</span>
         </div>
         <div className="kpi-value-row">
-          <span className="kpi-number">{tempVal !== null ? tempVal.toFixed(1) : '--'}°C</span>
-          <span className={`kpi-tag ${getTagClass(tempStatus)}`}>
-            {tempStatus === 'safe' ? 'Safe 4–8°C' : tempStatus === 'warning' ? 'Warning' : tempStatus === 'spoiling' ? 'Critical' : 'Awaiting ESP32'}
+          <span className="kpi-number">{tempVal.toFixed(1)}°C</span>
+          <span className={`kpi-tag ${hasReading ? getTagClass(tempStatus) : 'tag-blue'}`}>
+            {!hasReading
+              ? 'No Hardware (0.0°C)'
+              : tempStatus === 'safe'
+              ? 'Safe 4–8°C'
+              : tempStatus === 'warning'
+              ? 'Warning'
+              : 'Critical'}
           </span>
         </div>
         <div className="kpi-subtext">DS18B20 1-Wire Digital Probe</div>
@@ -78,9 +89,15 @@ export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, sessio
           <span className="kpi-label">Acidity / pH Level</span>
         </div>
         <div className="kpi-value-row">
-          <span className="kpi-number">{phVal !== null ? phVal.toFixed(2) : '--'}</span>
-          <span className={`kpi-tag ${getTagClass(phStatus)}`}>
-            {phStatus === 'safe' ? '≥6.40 Fresh' : phStatus === 'warning' ? 'Acidifying' : phStatus === 'spoiling' ? 'Sour / Curdled' : 'Awaiting ESP32'}
+          <span className="kpi-number">{phVal.toFixed(2)}</span>
+          <span className={`kpi-tag ${hasReading ? getTagClass(phStatus) : 'tag-blue'}`}>
+            {!hasReading
+              ? 'No Sensor (0.00)'
+              : phStatus === 'safe'
+              ? '≥6.40 Fresh'
+              : phStatus === 'warning'
+              ? 'Acidifying'
+              : 'Sour / Curdled'}
           </span>
         </div>
         <div className="kpi-subtext">Calibrated Analog Glass Electrode</div>
@@ -98,8 +115,12 @@ export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, sessio
         </div>
         <div className="kpi-value-row">
           <span className="kpi-number">{hoursRemaining.toFixed(1)} hrs</span>
-          <span className={`kpi-tag ${getTagClass(overallStatus)}`}>
-            {overallStatus === 'safe' ? '1.0x Safe rate' : '2.0x Penalty'}
+          <span className={`kpi-tag ${hasReading ? getTagClass(overallStatus) : 'tag-blue'}`}>
+            {!hasReading
+              ? 'Standby (0.0 hrs)'
+              : overallStatus === 'safe'
+              ? '1.0x Safe rate'
+              : '2.0x Penalty'}
           </span>
         </div>
         <div className="kpi-subtext">Dynamic cold-chain decay heuristic</div>
@@ -111,15 +132,23 @@ export const StatusTiles: React.FC<StatusTilesProps> = ({ currentReading, sessio
       <div className="kpi-col">
         <div className="kpi-header">
           <div className="kpi-icon-circle">
-            <Timer size={16} className="icon-indigo" />
+            <Timer size={16} className={isChilled ? 'icon-indigo' : 'icon-amber'} />
           </div>
-          <span className="kpi-label">Storage Session Time</span>
+          <span className="kpi-label">Chilling Storage Timer</span>
         </div>
         <div className="kpi-value-row">
           <span className="kpi-number font-mono">{elapsedString}</span>
-          <span className="kpi-tag tag-blue">Active session</span>
+          <span className={`kpi-tag ${isChilled ? 'tag-green' : 'tag-amber'}`}>
+            {!hasReading ? 'Standby' : isChilled ? 'Chilled (4–8°C)' : 'Cooling to 4–8°C'}
+          </span>
         </div>
-        <div className="kpi-subtext">Elapsed since milk poured into can</div>
+        <div className="kpi-subtext">
+          {!hasReading
+            ? 'Awaiting hardware connection or simulation'
+            : isChilled
+            ? 'Elapsed cold-chain storage duration'
+            : 'Timer locks in when temp reaches 4.0–8.0°C'}
+        </div>
       </div>
     </section>
   );

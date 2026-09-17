@@ -19,9 +19,12 @@ model Reading {
 }
 
 model Session {
-  id           Int       @id @default(autoincrement())
-  started_at   DateTime  @default(now())
-  ended_at     DateTime?
-  initial_hours Float    @default(8.0)
-  active       Boolean   @default(true)
+  id                  Int       @id @default(autoincrement())
+  started_at          DateTime  @default(now())
+  chilling_reached_at DateTime?
+  ended_at            DateTime?
+  initial_hours       Float     @default(8.0)
+  active              Boolean   @default(true)
+  batch_name          String?   @default("Batch-1")
+  state               String    @default("cooling") // "cooling" | "chilled" | "ended"
 }

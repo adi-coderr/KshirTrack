@@ -45,8 +45,9 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
   const tempValues = displayedReadings.map((r) => r.temperature_c);
   const phValues = displayedReadings.map((r) => r.ph);
 
-  const latestTemp = tempValues.length > 0 ? tempValues[tempValues.length - 1] : 5.4;
-  const latestPH = phValues.length > 0 ? phValues[phValues.length - 1] : 6.64;
+  const hasData = tempValues.length > 0;
+  const latestTemp = hasData ? tempValues[tempValues.length - 1] : 0.0;
+  const latestPH = hasData ? phValues[phValues.length - 1] : 0.0;
 
   // Calculate peak point indices to highlight dots like in reference image
   const peakTempIndex = tempValues.length > 0
@@ -237,7 +238,7 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
           {/* Callout badge styled like the dark pill in the reference */}
           <div className="reference-callout-pill">
             <span className="callout-value">{latestTemp.toFixed(1)}°C</span>
-            <span className="callout-label">Live Temp</span>
+            <span className="callout-label">{hasData ? 'Live Temp' : 'Standby'}</span>
           </div>
         </div>
 
@@ -280,7 +281,11 @@ export const LiveCharts: React.FC<LiveChartsProps> = ({ readings }) => {
 
       <div className="chart-canvas-wrapper" style={{ height: '260px' }}>
         {displayedReadings.length === 0 ? (
-          <div className="chart-empty">Waiting for live sensor data stream...</div>
+          <div className="chart-empty" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', color: '#94A3B8' }}>
+            <span style={{ fontSize: '26px', marginBottom: '6px' }}>📡</span>
+            <div style={{ fontWeight: 600, color: '#475569' }}>No Hardware Connected (Telemetry: 0.0°C &bull; 0.00 pH)</div>
+            <p style={{ fontSize: '12px', marginTop: '4px', color: '#94A3B8' }}>Connect ESP32 Node or choose a demo scenario above to stream data.</p>
+          </div>
         ) : (
           <Line data={chartData} options={chartOptions} />
         )}

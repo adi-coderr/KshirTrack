@@ -3,6 +3,7 @@ import { Server as SocketIOServer } from 'socket.io';
 import { evaluateReading } from './statusLogic.js';
 
 export type SimulationScenario = 
+  | 'fresh_milk_cooling'
   | 'normal_cooling'
   | 'temperature_warning'
   | 'temperature_spoilage'
@@ -43,7 +44,10 @@ export class ReadingSimulator {
     this.stepCount = 0;
 
     // Reset initial points based on scenario
-    if (scenario === 'normal_cooling') {
+    if (scenario === 'fresh_milk_cooling') {
+      this.currentTemp = 20.5; // Fresh warm milk poured into can
+      this.currentPH = 6.68;
+    } else if (scenario === 'normal_cooling') {
       this.currentTemp = 6.8;
       this.currentPH = 6.68;
     } else if (scenario === 'temperature_warning') {
@@ -75,9 +79,20 @@ export class ReadingSimulator {
     }
   }
 
+  public reset() {
+    this.stop();
+    this.stepCount = 0;
+    this.currentTemp = 0.0;
+    this.currentPH = 0.0;
+  }
+
   public setScenario(scenario: SimulationScenario) {
     this.scenario = scenario;
     this.stepCount = 0;
+    if (scenario === 'fresh_milk_cooling') {
+      this.currentTemp = 20.5;
+      this.currentPH = 6.68;
+    }
   }
 
   private async tick() {
@@ -86,6 +101,18 @@ export class ReadingSimulator {
     const noisePH = (Math.random() - 0.5) * 0.03;
 
     switch (this.scenario) {
+      case 'fresh_milk_cooling':
+        // Fresh warm milk cooling down towards 4-8°C target
+        if (this.currentTemp > 8.0) {
+          this.currentTemp -= 1.8;
+        } else if (this.currentTemp > 4.8) {
+          this.currentTemp -= 0.3;
+        } else {
+          this.currentTemp += (Math.random() - 0.5) * 0.1;
+        }
+        this.currentPH = Math.max(6.5, Math.min(6.75, 6.68 + noisePH));
+        break;
+
       case 'normal_cooling':
         // Cools gently towards ~4.8C, stays safely in 4.5-5.5C
         if (this.currentTemp > 4.8) {
@@ -93,7 +120,7 @@ export class ReadingSimulator {
         } else {
           this.currentTemp += (Math.random() - 0.5) * 0.1;
         }
-        this.currentPH = Math.max(6.5, Math.min(6.75, 6.65 + noisePH));
+        this.currentPH = Math.max(6.5, Math.min(6.75, 6.68 + noisePH));
         break;
 
       case 'temperature_warning':
@@ -158,10 +185,38 @@ export class ReadingSimulator {
         session = await this.prisma.session.create({
           data: {
             started_at: new Date(),
+            chilling_reached_at: null,
+            state: 'cooling',
             initial_hours: 8.0,
             active: true,
           },
         });
+      }
+
+      // If fresh milk cooling started on step 1, ensure chilling_reached_at is null
+      if (this.scenario === 'fresh_milk_cooling' && this.stepCount === 1) {
+        session = await this.prisma.session.update({
+          where: { id: session.id },
+          data: {
+            chilling_reached_at: null,
+            state: 'cooling',
+          },
+        });
+        this.io.emit('session-update', session);
+      }
+
+      // Lock in chilling timer when temp enters 4.0 - 8.0°C
+      let chillingReachedAt = session.chilling_reached_at;
+      if (!chillingReachedAt && temp_c >= 4.0 && temp_c <= 8.0) {
+        chillingReachedAt = new Date();
+        session = await this.prisma.session.update({
+          where: { id: session.id },
+          data: {
+            chilling_reached_at: chillingReachedAt,
+            state: 'chilled',
+          },
+        });
+        this.io.emit('session-update', session);
       }
 
       // Recent session readings
@@ -177,6 +232,7 @@ export class ReadingSimulator {
         temp_c,
         ph,
         session.started_at,
+        chillingReachedAt,
         history,
         session.initial_hours
       );
@@ -197,6 +253,9 @@ export class ReadingSimulator {
         session: {
           id: session.id,
           started_at: session.started_at,
+          chilling_reached_at: session.chilling_reached_at,
+          state: session.state,
+          batch_name: session.batch_name,
           initial_hours: session.initial_hours,
         },
       };

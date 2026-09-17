@@ -1,52 +1,20 @@
-/*
- * =====================================================================
- * Smart Milk Chilling Can - ESP32 Firmware
- * SIH Hackathon Cold-Chain Monitoring System
- * 
- * Hardware:
- *   - ESP32 NodeMCU / DevKit
- *   - DS18B20 Digital 1-Wire Temperature Sensor (GPIO 4 + 4.7kΩ pull-up)
- *   - Analog pH Sensor Module (Signal connected to GPIO 34 - ADC1_CH6)
- *
- * Destination:
- *   HTTP POST to: http://<LAPTOP_IP>:4000/api/readings
- * =====================================================================
- */
 
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-// ==========================================
-// 1. CONFIGURATION: Wi-Fi Credentials
-// ==========================================
-// Connect both your ESP32 and Laptop to the SAME Wi-Fi or Mobile Hotspot
 const char* ssid     = "YOUR_WIFI_OR_HOTSPOT_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
 
-// ==========================================
-// 2. CONFIGURATION: Backend Server URL
-// ==========================================
-// Replace with your laptop's current local IP address
-// (Run `ifconfig` or check the dashboard header)
 const char* serverUrl = "http://10.80.132.17:4000/api/readings";
 
-// ==========================================
-// 3. HARDWARE PIN DEFINITIONS
-// ==========================================
 #define ONE_WIRE_BUS 4        // DS18B20 Data wire connected to GPIO 4
 #define PH_PIN 34             // Analog pH signal connected to GPIO 34 (ADC1_CH6)
 
 // Polling interval in milliseconds (30 seconds)
 const unsigned long SEND_INTERVAL_MS = 30000; 
 
-// ==========================================
-// 4. SENSOR CALIBRATION PARAMETERS
-// ==========================================
-// Linear formula: pH = (slope * voltage) + offset
-// Calibrate with pH 7.0 and pH 4.0 buffer solutions
-// Default typical constants for standard 5V/3.3V analog modules:
 float ph_slope = -5.70;   // Slope (m)
 float ph_offset = 21.34;  // Intercept (c)
 

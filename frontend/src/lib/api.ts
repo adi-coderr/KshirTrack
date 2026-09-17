@@ -52,19 +52,36 @@ export async function fetchCurrentSession(): Promise<SessionInfo | null> {
   }
 }
 
-export async function startNewSession(initialHours = 8.0): Promise<SessionInfo | null> {
+export async function startNewSession(initialHours = 8.0, batchName?: string): Promise<SessionInfo | null> {
   try {
     const base = getApiBase();
     const res = await fetch(`${base}/api/session/start`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ initial_hours: initialHours }),
+      body: JSON.stringify({ initial_hours: initialHours, batch_name: batchName }),
     });
     if (!res.ok) throw new Error('Failed to start session');
     const data = await res.json();
     return data.session;
   } catch (err) {
     console.error('startNewSession error:', err);
+    return null;
+  }
+}
+
+export async function changeMilkSession(initialHours = 8.0, batchName?: string): Promise<SessionInfo | null> {
+  try {
+    const base = getApiBase();
+    const res = await fetch(`${base}/api/session/change-milk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ initial_hours: initialHours, batch_name: batchName }),
+    });
+    if (!res.ok) throw new Error('Failed to change milk session');
+    const data = await res.json();
+    return data.session;
+  } catch (err) {
+    console.error('changeMilkSession error:', err);
     return null;
   }
 }

@@ -34,6 +34,15 @@ export const SimulatorControls: React.FC<SimulatorControlsProps> = ({
         <div className="sim-scenarios-group">
           <button
             type="button"
+            onClick={() => onSelectScenario('fresh_milk_cooling')}
+            className={`sim-pill-btn ${currentScenario === 'fresh_milk_cooling' ? 'active' : ''}`}
+            title="Fresh Warm Milk (20.5°C -> Cools down to 4–8°C to start timer)"
+          >
+            <span>🥛 Fresh Milk (Cooling)</span>
+          </button>
+
+          <button
+            type="button"
             onClick={() => onSelectScenario('normal_cooling')}
             className={`sim-pill-btn ${currentScenario === 'normal_cooling' ? 'active' : ''}`}
             title="Safe Chilling (4.8°C, pH 6.65)"

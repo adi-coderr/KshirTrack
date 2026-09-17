@@ -13,10 +13,11 @@ export const StatusOverviewCard: React.FC<StatusOverviewCardProps> = ({
   currentReading,
   onOpenSchematic,
 }) => {
-  const temp = currentReading?.temperature_c ?? 5.4;
-  const ph = currentReading?.ph ?? 6.64;
-  const status = currentReading?.status ?? 'safe';
-  const hoursRemaining = currentReading?.estimated_hours_remaining ?? 8.0;
+  const hasReading = Boolean(currentReading);
+  const temp = hasReading ? currentReading!.temperature_c : 0.0;
+  const ph = hasReading ? currentReading!.ph : 0.0;
+  const status = hasReading ? currentReading!.status : 'waiting';
+  const hoursRemaining = hasReading ? currentReading!.estimated_hours_remaining : 0.0;
 
   const isSafe = status === 'safe';
   const isWarning = status === 'warning';
@@ -32,14 +33,30 @@ export const StatusOverviewCard: React.FC<StatusOverviewCardProps> = ({
         <div className="status-entity-wrap">
           <div className="status-avatar-circle">
             <span style={{ fontSize: '20px' }}>🥛</span>
-            <span className={`avatar-status-dot ${isSafe ? 'dot-safe' : isWarning ? 'dot-warning' : 'dot-danger'}`} />
+            <span
+              className={`avatar-status-dot ${!hasReading
+                  ? 'dot-neutral'
+                  : isSafe
+                    ? 'dot-safe'
+                    : isWarning
+                      ? 'dot-warning'
+                      : 'dot-danger'
+                }`}
+              style={!hasReading ? { backgroundColor: '#94A3B8' } : undefined}
+            />
           </div>
           <div className="status-entity-details">
             <div className="entity-role">
-              {isSafe ? 'Cold Chain Fully Secured' : isWarning ? 'Temperature Warning Active' : 'Critical Spoilage Alert'}
+              {!hasReading
+                ? 'Standby (Awaiting Sensor Telemetry)'
+                : isSafe
+                  ? 'Cold Chain Fully Secured'
+                  : isWarning
+                    ? 'Temperature Warning Active'
+                    : 'Critical Spoilage Alert'}
             </div>
             <div className="entity-name">
-              Unit #CAN-40L (40L Insulated Can)
+              Unit #CAN
             </div>
           </div>
         </div>
@@ -66,7 +83,11 @@ export const StatusOverviewCard: React.FC<StatusOverviewCardProps> = ({
           >
             View Blueprint
           </button>
-          <div className={`btn-round-action ${isSafe ? 'bg-green' : isWarning ? 'bg-amber' : 'bg-red'}`}>
+          <div
+            className={`btn-round-action ${!hasReading ? 'bg-blue' : isSafe ? 'bg-green' : isWarning ? 'bg-amber' : 'bg-red'
+              }`}
+            style={!hasReading ? { backgroundColor: '#94A3B8' } : undefined}
+          >
             {isSafe ? <Check size={16} color="#FFF" /> : <AlertTriangle size={16} color="#FFF" />}
           </div>
         </div>

@@ -13,16 +13,19 @@ import {
   Settings,
   LogOut,
   Zap,
+  RotateCcw,
 } from 'lucide-react';
 
 interface SidebarProps {
   onResetSession?: () => void;
+  onChangeMilk?: () => void;
   onOpenSimulator?: () => void;
   isSimulating?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   onResetSession,
+  onChangeMilk,
   onOpenSimulator,
   isSimulating,
 }) => {
@@ -87,6 +90,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           title="Sensor Stream Simulator"
         >
           <Sliders size={18} />
+        </button>
+
+        <button
+          type="button"
+          onClick={onChangeMilk}
+          className="nav-icon-btn"
+          title="Change Milk Batch (Reset timer to cooling state)"
+        >
+          <RotateCcw size={18} />
         </button>
 
         <button

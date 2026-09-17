@@ -67,22 +67,38 @@ export function calculateEstimatedHoursRemaining(
   readingsHistory: Array<{ timestamp: Date; temperature_c: number; ph: number }>,
   currentTemp: number,
   currentPH: number,
-  initialHours: number = 8.0
+  initialHours: number = 8.0,
+  chillingReachedAt?: Date | null
 ): number {
-  const now = new Date();
-  const totalElapsedHours = Math.max(0, (now.getTime() - sessionStartedAt.getTime()) / (1000 * 60 * 60));
+  // If milk has not reached the 4.0°C - 8.0°C chilling range yet, storage timer hasn't started
+  if (!chillingReachedAt) {
+    // If milk is spoiled (< 6.0 pH) even before chilling, shelf life is 0
+    if (currentPH < 6.0 || currentTemp > 28.0) {
+      return 0;
+    }
+    return initialHours;
+  }
 
-  if (readingsHistory.length === 0) {
+  const now = new Date();
+  const effectiveStart = new Date(chillingReachedAt);
+  const totalElapsedHours = Math.max(0, (now.getTime() - effectiveStart.getTime()) / (1000 * 60 * 60));
+
+  // Filter history to readings recorded since chilling was reached
+  const chilledHistory = readingsHistory.filter(
+    (r) => new Date(r.timestamp).getTime() >= effectiveStart.getTime()
+  );
+
+  if (chilledHistory.length === 0) {
     const decayMultiplier = (currentTemp >= 4.0 && currentTemp <= 8.0) ? 1.0 : 2.0;
     const remaining = initialHours - (totalElapsedHours * decayMultiplier);
     return Math.max(0, Math.round(remaining * 10) / 10);
   }
 
-  // Calculate integrated degradation over readings
+  // Calculate integrated degradation over chilled readings
   let degradedHours = 0;
-  let lastTime = sessionStartedAt.getTime();
+  let lastTime = effectiveStart.getTime();
 
-  for (const r of readingsHistory) {
+  for (const r of chilledHistory) {
     const rTime = new Date(r.timestamp).getTime();
     const intervalHours = Math.max(0, (rTime - lastTime) / (1000 * 60 * 60));
     const isSafe = r.temperature_c >= 4.0 && r.temperature_c <= 8.0;
@@ -113,6 +129,7 @@ export function evaluateReading(
   tempC: number,
   ph: number,
   sessionStartedAt: Date,
+  chillingReachedAt?: Date | null,
   readingsHistory: Array<{ timestamp: Date; temperature_c: number; ph: number }> = [],
   initialHours: number = 8.0
 ): EvaluatedStatus {
@@ -124,7 +141,8 @@ export function evaluateReading(
     readingsHistory,
     tempC,
     ph,
-    initialHours
+    initialHours,
+    chillingReachedAt
   );
 
   return {

@@ -9,13 +9,14 @@ interface CanSchematicProps {
 }
 
 export const CanSchematic: React.FC<CanSchematicProps> = ({ currentReading }) => {
-  const temp = currentReading?.temperature_c ?? 5.4;
-  const ph = currentReading?.ph ?? 6.64;
-  const isSafe = (currentReading?.status ?? 'safe') === 'safe';
-  const isWarning = currentReading?.status === 'warning';
+  const hasReading = Boolean(currentReading);
+  const temp = hasReading ? currentReading!.temperature_c : 0.0;
+  const ph = hasReading ? currentReading!.ph : 0.0;
+  const isSafe = hasReading && currentReading!.status === 'safe';
+  const isWarning = hasReading && currentReading!.status === 'warning';
 
-  const milkFill = isSafe ? '#E0F2FE' : isWarning ? '#FEF3C7' : '#FEE2E2';
-  const accentColor = isSafe ? '#10B981' : isWarning ? '#F59E0B' : '#EF4444';
+  const milkFill = !hasReading ? '#F8FAFC' : isSafe ? '#E0F2FE' : isWarning ? '#FEF3C7' : '#FEE2E2';
+  const accentColor = !hasReading ? '#94A3B8' : isSafe ? '#10B981' : isWarning ? '#F59E0B' : '#EF4444';
 
   return (
     <div id="schematic-section" className="white-panel-card schematic-panel-clean">
@@ -29,8 +30,8 @@ export const CanSchematic: React.FC<CanSchematicProps> = ({ currentReading }) =>
 
         <div style={{ display: 'flex', gap: '8px' }}>
           <span className="badge-pill-light">
-            <Radio size={12} color="#10B981" />
-            <span>ESP32 WiFi Node</span>
+            <Radio size={12} color={hasReading ? '#10B981' : '#94A3B8'} />
+            <span>{hasReading ? 'ESP32 WiFi Node' : 'Node Standby'}</span>
           </span>
           <span className="badge-pill-light">
             <Zap size={12} color="#4F46E5" />
@@ -52,7 +53,7 @@ export const CanSchematic: React.FC<CanSchematicProps> = ({ currentReading }) =>
             <div className="schematic-cylinder">
               {/* Milk Liquid Fill */}
               <div className="schematic-liquid" style={{ backgroundColor: milkFill }}>
-                <span className="capacity-label">40L CAPACITY</span>
+                <span className="capacity-label">{hasReading ? '40L CAPACITY' : 'STANDBY (0.0L)'}</span>
               </div>
 
               {/* Temp Probe */}
